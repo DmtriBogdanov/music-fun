@@ -12,6 +12,7 @@ export type PlaylistData = {
   attributes: PlaylistAttributes
 }
 
+
 export type PlaylistMeta = {
   page: number
   pageSize: number
@@ -43,4 +44,15 @@ export type FetchPlaylistsArgs = {
   tagsIds?: string[]
   userId?: string
   trackId?: string
+}
+
+export type CreatePlaylistArgs = {
+  title: string
+  description: string
+}
+
+export type UpdatePlaylistArgs = {
+  title: string
+  description: string
+  tagIds: string[]
 }
