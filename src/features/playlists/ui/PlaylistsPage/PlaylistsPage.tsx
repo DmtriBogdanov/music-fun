@@ -19,6 +19,7 @@ import {
 import {
   EditPlaylistForm
 } from "@/features/playlists/ui/PlaylistsPage/EditPlaylistForm/EditPlaylistForm";
+import {useDebounceValue} from "@/common/hooks";
 
 export const PlaylistsPage = () => {
   // 1
@@ -27,8 +28,10 @@ export const PlaylistsPage = () => {
 
   const {register, handleSubmit, reset} = useForm<UpdatePlaylistArgs>()
 
-  const {data, isLoading} = useFetchPlaylistsQuery({search})
+  const debouncedSearch = useDebounceValue(search)
+  const {data, isLoading} = useFetchPlaylistsQuery({search: debouncedSearch})
   const [deletePlaylist] = useDeletePlaylistMutation()
+
 
   const deletePlaylistHandler = (playlistId: string) => {
     if (confirm('Are you sure you want to delete the playlist?')) {
