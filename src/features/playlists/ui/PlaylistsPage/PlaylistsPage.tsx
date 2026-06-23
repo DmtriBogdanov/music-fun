@@ -1,58 +1,37 @@
+import {type ChangeEvent, useState} from "react";
+import {useDebounceValue} from "@/common/hooks";
+import {useFetchPlaylistsQuery} from "@/features/playlists/api/playlistsApi";
+import s from './PlaylistsPage.module.css'
 import {
   CreatePlaylistForm
 } from "@/features/playlists/ui/PlaylistsPage/CreatePlaylistForm/CreatePlaylistForm";
-import type {
-  PlaylistData,
-  UpdatePlaylistArgs
-} from "@/features/playlists/api/playlistsApi.types";
-import {useForm} from "react-hook-form";
-import {useState} from "react";
 import {
-  useDeletePlaylistMutation,
-  useFetchPlaylistsQuery
-} from "@/features/playlists/api/playlistsApi";
-
-import s from './PlaylistsPage.module.css'
-import {
-  PlaylistItem
-} from "@/features/playlists/ui/PlaylistsPage/PlaylistItem/PlaylistItem";
-import {
-  EditPlaylistForm
-} from "@/features/playlists/ui/PlaylistsPage/EditPlaylistForm/EditPlaylistForm";
-import {useDebounceValue} from "@/common/hooks";
+  PlaylistsList
+} from "@/features/playlists/ui/PlaylistsPage/PlaylistsList/PlaylistsList";
+import {Pagination} from "@/common/components";
 
 export const PlaylistsPage = () => {
-  // 1
-  const [playlistId, setPlaylistId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(2)
+
   const [search, setSearch] = useState('')
+  const debounceSearch = useDebounceValue(search)
 
-  const {register, handleSubmit, reset} = useForm<UpdatePlaylistArgs>()
+  const { data, isLoading } = useFetchPlaylistsQuery({
+    search: debounceSearch,
+    pageNumber: currentPage,
+    pageSize,
+  })
 
-  const debouncedSearch = useDebounceValue(search)
-  const {data, isLoading} = useFetchPlaylistsQuery({search: debouncedSearch})
-  const [deletePlaylist] = useDeletePlaylistMutation()
-
-
-  const deletePlaylistHandler = (playlistId: string) => {
-    if (confirm('Are you sure you want to delete the playlist?')) {
-      deletePlaylist(playlistId)
-    }
+  const changePageSizeHandler = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
   }
 
-  // 3, 5
-  const editPlaylistHandler = (playlist: PlaylistData | null) => {
-    if (playlist) {
-      setPlaylistId(playlist.id)
-      reset({
-        title: playlist.attributes.title,
-        description: playlist.attributes.description,
-        tagIds: playlist.attributes.tags.map(t => t.id),
-      })
-    } else {
-      setPlaylistId(null)
-    }
+  const searchPlaylistHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.currentTarget.value)
+    setCurrentPage(1)
   }
-
 
   return (
     <div className={s.container}>
@@ -61,38 +40,16 @@ export const PlaylistsPage = () => {
       <input
         type="search"
         placeholder={'Search playlist by title'}
-        onChange={e => setSearch(e.currentTarget.value)}
+        onChange={searchPlaylistHandler}
       />
-      <div className={s.items}>
-        {!data?.data.length && !isLoading && <h2>Playlist not found</h2>}
-        {data?.data.map(playlist => {
-          // 2
-          const isEditing = playlistId === playlist.id
-
-          return (
-            <div
-              className={s.item}
-              key={playlist.id}
-            >
-              {isEditing ? (
-                <EditPlaylistForm
-                  playlistId={playlistId}
-                  register={register}
-                  handleSubmit={handleSubmit}
-                  editPlaylist={editPlaylistHandler}
-                  setPlaylistId={setPlaylistId}
-                />
-              ) : (
-                <PlaylistItem
-                  playlist={playlist}
-                  deletePlaylist={deletePlaylistHandler}
-                  editPlaylist={editPlaylistHandler}
-                />
-              )}
-            </div>
-          )
-        })}
-      </div>
+      <PlaylistsList playlists={data?.data || []} isPlaylistsLoading={isLoading} />
+      <Pagination
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        pagesCount={data?.meta.pagesCount || 1}
+        pageSize={pageSize}
+        changePageSize={changePageSizeHandler}
+      />
     </div>
   )
 }
