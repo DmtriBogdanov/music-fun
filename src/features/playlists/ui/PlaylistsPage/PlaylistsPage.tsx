@@ -17,7 +17,7 @@ export const PlaylistsPage = () => {
   const [search, setSearch] = useState('')
   const debounceSearch = useDebounceValue(search)
 
-  const { data, isLoading } = useFetchPlaylistsQuery({
+  const { data, isLoading} = useFetchPlaylistsQuery({
     search: debounceSearch,
     pageNumber: currentPage,
     pageSize,
@@ -33,8 +33,11 @@ export const PlaylistsPage = () => {
     setCurrentPage(1)
   }
 
+  if (isLoading) return <h1>Skeleton loader ...</h1>
+
   return (
     <div className={s.container}>
+
       <h1>Playlists page</h1>
       <CreatePlaylistForm />
       <input
