@@ -17,7 +17,7 @@ export const PlaylistsPage = () => {
   const [search, setSearch] = useState('')
   const debounceSearch = useDebounceValue(search)
 
-  const { data, isLoading} = useFetchPlaylistsQuery({
+  const {data, isLoading} = useFetchPlaylistsQuery({
     search: debounceSearch,
     pageNumber: currentPage,
     pageSize,
@@ -45,7 +45,10 @@ export const PlaylistsPage = () => {
         placeholder={'Search playlist by title'}
         onChange={searchPlaylistHandler}
       />
-      <PlaylistsList playlists={data?.data || []} isPlaylistsLoading={isLoading} />
+      <PlaylistsList
+        playlists={data?.data || []}
+        isPlaylistsLoading={isLoading}
+      />
       <Pagination
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
