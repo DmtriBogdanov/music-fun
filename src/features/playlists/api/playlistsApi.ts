@@ -1,16 +1,24 @@
 import type {
-  CreatePlaylistArgs, FetchPlaylistsArgs,
+  CreatePlaylistArgs,
+  FetchPlaylistsArgs,
   PlaylistData,
   PlaylistsResponse,
   UpdatePlaylistArgs
 } from "@/features/playlists/api/playlistsApi.types";
 import {baseApi} from "@/app/api/baseApi";
 import type {Images} from "@/common/types";
+import {
+  playlistCreateResponseSchema,
+  playlistsResponseSchema
+} from "@/features/playlists/model/playlists.schemas";
+import {withZodCatch} from "@/common/utils";
+import {imagesSchema} from "@/common/schemas";
 
 export const playlistsApi = baseApi.injectEndpoints({
   endpoints: build => ({
     fetchPlaylists: build.query<PlaylistsResponse, FetchPlaylistsArgs>({
-      query: params => ({ url: `playlists`, params }),
+      query: (params) => ({ url: `playlists`, params }),
+      ...withZodCatch(playlistsResponseSchema),
       providesTags: ['Playlist'],
     }),
     createPlaylist: build.mutation<{ data: PlaylistData }, CreatePlaylistArgs>({
@@ -27,6 +35,7 @@ export const playlistsApi = baseApi.injectEndpoints({
           },
         },
       }),
+      ...withZodCatch(playlistCreateResponseSchema),
       invalidatesTags: ["Playlist"]
     }),
     deletePlaylist: build.mutation<void, string>({
@@ -84,6 +93,7 @@ export const playlistsApi = baseApi.injectEndpoints({
           body: formData
         });
       },
+      ...withZodCatch(imagesSchema),
       invalidatesTags: ["Playlist"]
     }),
     deletePlaylistCover: build.mutation<void, {playlistId: string}>({
